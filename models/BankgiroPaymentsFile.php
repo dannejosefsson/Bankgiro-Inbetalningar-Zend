@@ -1,70 +1,38 @@
 <?php
-require_once './BankgiroPaymentsDeposit.php';
-
 /**
-* BankgiroPayments
+* Economy_Model_BankgiroPayments
 *
 * A class made for hold Bankgiro Inbetalningar structs.
 *
 * @author		Daniel Josefsson <dannejosefsson@gmail.com>
 * @copyright	Copyright © 2012 Daniel Josefsson. All rights reserved.
 * @license		GPL v3
-* @version		v0.3
-* @uses			BankgiroPaymentDeposit
+* @version		v0.2
+* @uses			Economy_Model_BankgiroPaymentsDeposit
 */
-class BankgiroPayments
+class Economy_Model_BankgiroPaymentsFile
 {
 	/**
-	* Layout type
-	* Max length: 20
-	* @var string
-	*/
-	protected $_layout;
-	/**
-	* Version
-	* Max length: 2
-	* @var int
-	*/
-	protected $_version;
-	/**
-	* Timestamp
-	* @var MySQL timestamp
-	*/
-	protected $_timestamp;
-	/**
-	* Microseconds
-	* Length: 6
-	* @var string
-	*/
-	protected $_microSeconds;
-	/**
-	* Test marker
-	* Length: 1
-	* @var string
-	*/
-	protected $_testMarker;
-
-	/**
-	* Deposit posts count.
-	* Max length: 8
+	* Deposits
 	* @var array BankgiroPaymentsDeposit
 	*/
 	protected $_deposits;
 
+	protected $_fileData;
+
+	/**
+	* Instance of Economy_Model_DbTable_BankgiroPaymentsFile
+	* @var Economy_Model_DbTable_BankgiroPaymentsFile $_bankgiroTableFile
+	*/
+	protected $_bankgiroFileTableRow;
+
+	// State machine
+	protected $_state;
 	/**
 	* Array storing errors
 	* @var array of strings
 	*/
-	protected	$_errors;
-
-	// File info
-	protected $_filename;
-	protected $_fileData;
-
-
-	// State machine
-	protected $_state;
-	protected $_error;
+	protected $_errors;
 	const STATE_IDLE					= 'Idle';
 	const STATE_ERROR					= 'Error occured';
 	const STATE_PARSING					= 'Parsing file';
@@ -87,155 +55,93 @@ class BankgiroPayments
 		$this->_state = self::STATE_IDLE;
 		if ( is_array($options) )
 		{
-			$i = 0;
-			$this->setFilename($options[$i++]);
+			if (array_key_exists('fileRow', $options))
+			{
+				$this->setTableRow($options['fileRow']);
+			}
 		}
 		elseif ( is_string( $options ) )
 		{
+			$this->setTableRow(new Economy_Model_DbTable_BankgiroPaymentsFile);
 			$this->setFilename($options);
 		}
-		$this->clearDeposits();
-		$this->_errors = array();
+		else
+		{
+			$this->setTableRow(new Economy_Model_DbTable_BankgiroPaymentsFile);
+		}
+		$this->_errors 		= array();
 		$this->_fileData	= array();
-		$this->_error		= array();
+		$this->_errors		= array();
 	}
 
 	/**
-	* Returns layout
+	* Sets table row
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* $return	int $_layout
+	* @since	v0.2
+	* @param	string $tableRow
+	* @return	Economy_Model_BankgiroPaymentsFile
 	*/
-	public function getLayout()
+	public function setTableRow( $tableRow )
 	{
-		return $this->_layout;
-	}
-
-	/**
-	* Sets layout
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param	string $layout
-	* @return	BankgiroPayments
-	*/
-	public function setLayout( $layout )
-	{
-		$this->_layout = $layout;
+		$this->_bankgiroFileTableRow = $tableRow;
 		return $this;
 	}
 
 	/**
-	* Returns version
+	* Returns table row
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	Economy_Model_BankgiroPaymentsFile
+	*/
+	public function getTableRow()
+	{
+		return $this->_bankgiroFileTableRow;
+	}
+
+	/**
+	* Returns table row column value
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	mixed
+	*/
+	public function getTableRowColumnValue($columnName)
+	{
+		if ( $this->_bankgiroFileTableRow->getColumnName($columnName) )
+		{
+			return $this->_bankgiroFileTableRow->__get($this->_bankgiroFileTableRow->getColumnName($columnName));
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	/**
+	* Sets table row column value
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	Economy_Model_BankgiroPaymentsFile $this or null
+	*/
+	public function setTableRowColumnValue($columnName, $value)
+	{
+		if ( $this->_bankgiroFileTableRow->getColumnName($columnName) )
+		{
+			$this->_bankgiroFileTableRow->__set($this->_bankgiroFileTableRow->getColumnName($columnName), $value);
+			return $this;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	/**
+	* Sets a new filename. Returns STATE_ERROR on failure.
 	* @since	v0.1
+	*
+	* @param 	$newFilename	- path and filename.
+	* @return	Economy_Model_BankgiroPaymentsFile $this
 	*/
-	public function getVersion()
-	{
-		return $this->_version;
-	}
-
-	/**
-	* Sets version.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param	int $version
-	* @return	BankgiroPayments
-	*/
-	public function setVersion( $version )
-	{
-		$this->_version = $version;
-		return $this;
-	}
-
-	/**
-	* Returns timestamp
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getTimestamp()
-	{
-		return $this->_timestamp;
-	}
-
-	/**
-	* Sets timestamp.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param	MySQL_timestamp $timestamp
-	* @return	BankgiroPayments
-	*/
-	public function setTimestamp( $timestamp )
-	{
-		$this->_timestamp = $timestamp;
-		return $this;
-	}
-
-	/**
-	* Returns micro seconds
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getMicroSeconds()
-	{
-		return $this->_microSeconds;
-	}
-
-	/**
-	* Sets micro seconds.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param	int $microSeconds
-	* @return	BankgiroPayments
-	*/
-	public function setMicroSeconds( $microSeconds )
-	{
-		$this->_microSeconds = $microSeconds;
-		return $this;
-	}
-
-	/**
-	* Returns test marker.
-	* testMarker will be "T" if it is test or "P" if it is
-	* production.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getTestMarker()
-	{
-		return $this->_testMarker;
-	}
-
-	/**
-	* Sets test marker.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param	int $testMarker
-	* @return	BankgiroPayments
-	*/
-	public function setTestMarker( $testMarker )
-	{
-		$this->_testMarker = $testMarker;
-		return $this;
-	}
-
-	/**
-	* Get filename
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.3
-	*/
-	public function getFilename()
-	{
-		return $this->_filename;
-	}
-
-	/**
-	 * Sets a new filename. Returns STATE_ERROR on failure.
-	 * @since	v0.3
-	 *
-	 * @param 	$newFilename	- path and filename.
-	 * @param	$error			- returns error if $newFilename is not found.
-	 * @return	BankgiroPayments
-	 */
 	public function setFilename( $newFilename )
 	{
 		if ( isset($newFilename) && "" != $newFilename )
@@ -247,16 +153,28 @@ class BankgiroPayments
 			else
 			{
 				$this->_state = self::STATE_ERROR;
-				$error[] = "$newFilename is not a file.";
+				$this->setError("$newFilename is not a file.");
 			}
 		}
 		return $this;
 	}
 
 	/**
+	* Upload the changed data to the database.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	Economy_Model_BankgiroPaymentsFile $this
+	*/
+	public function saveFile()
+	{
+		$this->_bankgiroFileTableRow->save();
+		return $this;
+	}
+
+	/**
 	* Returns errors.
 	* @author	Daniel Josefsson
-	* @since	v0.2
+	* @since	v0.1
 	* @return	array of strings
 	*/
 	public function getErrors()
@@ -267,7 +185,7 @@ class BankgiroPayments
 	/**
 	 * Sets new error.
 	 * @author	Daniel Josefsson
-	 * @since	v0.2
+	 * @since	v0.1
 	 * @param	string $errors
 	 * @return	BankgiroPaymentsDeposit
 	 */
@@ -318,7 +236,7 @@ class BankgiroPayments
 	/**
 	* Clear deposits.
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
+	* @since	v0.1
 	* @return	BankgiroPayments
 	*/
 	public function clearDeposits()
@@ -331,7 +249,7 @@ class BankgiroPayments
 	/**
 	* Add new BankgiroPaymentsDeposit to container.
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
+	* @since	v0.1
 	* @return	int BankgiroPayments
 	*/
 	public function addDeposit()
@@ -343,7 +261,7 @@ class BankgiroPayments
 	/**
 	* Return index to the latest inserted deposit.
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
+	* @since	v0.1
 	* @return	int $keyToDeposit
 	*/
 	public function lastDepositIndex()
@@ -355,7 +273,7 @@ class BankgiroPayments
 	/**
 	* Returns wanted deposit
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
+	* @since	v0.1
 	* @param 	int $index
 	* @return	BankgiroPaymentsDeposit
 	 */
@@ -367,18 +285,18 @@ class BankgiroPayments
 	/**
 	* Parses start post (01).
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
+	* @since	v0.1
 	* @param 	string				$lineData
 	* @return	bool
 	*/
 	private function parseStartPost( $lineData )
 	{
-		$this->setLayout(trim(substr($lineData, 0, 20)));
-		$this->setVersion((int) substr($lineData, 20, 2));
-		$this->setTimestamp(date(	'Y-m-d H:i:s',
+		$this->setTableRowColumnValue('layout', (trim(substr($lineData, 0, 20))));
+		$this->setTableRowColumnValue('version', substr($lineData, 20, 2));
+		$this->setTableRowColumnValue('timeCreated', date(	'Y-m-d H:i:s',
 									strtotime(substr($lineData, 22, 8).'T'. substr($lineData, 30, 6))));
-		$this->setMicroSeconds(substr($lineData, 36, 6));
-		$this->setTestMarker(substr($lineData, 42, 1));
+		$this->setTableRowColumnValue('microSeconds', substr($lineData, 36, 6));
+		$this->setTableRowColumnValue('testMarker', substr($lineData, 42, 1));
 		// Reserved placeholders (lineData[43-77]) are not used.
 		return $this;
 	}
@@ -386,7 +304,7 @@ class BankgiroPayments
 	/**
 	* Parses end post (70).
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
+	* @since	v0.1
 	* @param 	string 				$lineData
 	* @return	bool
 	*/
@@ -408,8 +326,9 @@ class BankgiroPayments
 									"external references posts count",
 									"deposit posts count",
 								);
-		$parsedCounts = $this->getPostsCounts();
+
 		$return = true;
+		/*$parsedCounts = $this->getPostsCounts();
 		for ($i = 0; $i < sizeof($parsedCounts); $i++)
 		{
 			if ( !$this->checkConsistancy(	$parsedCounts[$i],
@@ -418,26 +337,31 @@ class BankgiroPayments
 			{
 				$return = false;
 			}
-		}
+		}*/
 		// Reserved placeholders (lineData[32-77]) are not used.
+		if ( $return )
+		{
+			$this->setTableRowColumnValue('treated', 1);
+			$this->saveFile();
+		}
 		return $return;
 	}
 
 	/**
 	* Reads and stores earlier given file. Sets state to error on failure.
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.3
+	* @since	v0.1
 	* @return 	BankgiroPayments
 	*/
 	public function readFile()
 	{
 		// Clear array to make sure that not old data is parsed again.
 		$this->_fileData=array();
-		if ($openFile = file($this->getFilename()))
+		if ($openFile = file($this->getTableRowColumnValue('filename')))
 		{
 			foreach ($openFile as $lineNum => $line)
 			{
-				$this->_fileData[$lineNum] = $line;
+				$this->_fileData[$lineNum] = utf8_encode($line);
 			}
 		}
 		else
@@ -450,7 +374,7 @@ class BankgiroPayments
 	/**
 	 * Parses given file.
 	 * @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	 * @since	v0.2
+	 * @since	v0.1
 	 * @param 	string $filename
 	 * @return	BankgiroPayments
 	 */
@@ -482,7 +406,7 @@ class BankgiroPayments
 						break;
 
 						// Opening post
-					case '05':
+	/*				case '05':
 						if ( 	strcmp($this->_state, self::STATE_START_POST_PARSED) ||
 								strcmp($this->_state, self::STATE_SUMMATION_POST_PARSED) )
 						{
@@ -533,7 +457,7 @@ class BankgiroPayments
 							$this->setError('Opening post or payment summation post was not parsed before next opening post.');
 						}
 						break;
-
+*/
 						// End post
 					case '70':
 						if ( 	strcmp($this->_state, self::STATE_START_POST_PARSED) ||
@@ -557,12 +481,11 @@ class BankgiroPayments
 		return $this;
 	}
 
-
 	/**
 	* Check if the value of left and right are the same.
 	* If not; trow an error with the dynamic variableName.
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
+	* @since	v0.1
 	* @param 	mixed	$left
 	* @param 	mixed	$right
 	* @param 	string	$variableName

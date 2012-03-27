@@ -1,7 +1,6 @@
 <?php
-
 /**
-* BankgiroPaymentTransaction
+* Economy_Model_BankgiroPaymentsTransaction
 *
 * A class made to contain a payment post parsed from Bankgiro Inbetalningar files.
 *
@@ -10,7 +9,7 @@
 * @author		Daniel Josefsson <dannejosefsson@gmail.com>
 * @version		v0.1
 */
-class BankgiroPaymentsTransaction
+class Economy_Model_BankgiroPaymentsTransaction
 {
 	/**
 	* Transaction code.

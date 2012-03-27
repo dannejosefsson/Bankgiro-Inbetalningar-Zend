@@ -1,8 +1,6 @@
 <?php
-
-require_once './BankgiroPaymentsTransaction.php';
 /**
-* BankgiroPaymentDeposit
+* Economy_Model_BankgiroPaymentsDeposit
 *
 * A class made to contain a deposit parsed from Bankgiro Inbetalningar files.
 *
@@ -11,7 +9,7 @@ require_once './BankgiroPaymentsTransaction.php';
 * @author		Daniel Josefsson <dannejosefsson@gmail.com>
 * @version		v0.2
 */
-class BankgiroPaymentsDeposit
+class Economy_Model_BankgiroPaymentsDeposit
 {
 	/**
 	* Bankgiro account number.
