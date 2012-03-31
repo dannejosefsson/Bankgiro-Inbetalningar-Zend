@@ -24,23 +24,11 @@ class Economy_Model_BankgiroPaymentsFiles
 	*/
 	protected $_bankgiroFiles;
 
-	// State machine
-	protected $_state;
 	/**
 	* Array storing errors
 	* @var array of strings
 	*/
 	protected $_errors;
-	const STATE_IDLE					= 'Idle';
-	const STATE_ERROR					= 'Error occured';
-	const STATE_PARSING					= 'Parsing file';
-	const STATE_START_POST_PARSED		= 'Start post parsed';
-	const STATE_END_POST_PARSED			= 'End post parsed';
-	const STATE_OPENING_POST_PARSED		= 'Opening post parsed';
-	const STATE_SUMMATION_POST_PARSED	= 'Summation post parsed';
-	const STATE_PAYMENT_POST_PARSED		= 'Payment post parsed';
-	const STATE_DEDUCTION_POST_PARSED	= 'Deduction post parsed';
-	const STATE_FILE_COMPLETLY_PARSED	= 'File completly parsed';
 
 	/**
 	* Returns errors.
@@ -104,7 +92,7 @@ class Economy_Model_BankgiroPaymentsFiles
 	* Get BankgiroPaymentsFiles table.
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
 	* @since	v0.2
-	* @return	Economy_Model_DbTable_BankgiroPaymentsFile
+	* @return	Economy_Model_DbTable_BankgiroPaymentsFiles
 	*/
 	public function getBankgiroPaymentsFilesTable()
 	{
@@ -126,10 +114,8 @@ class Economy_Model_BankgiroPaymentsFiles
 	{
 		// Load table if not loaded.
     	$this->getBankgiroPaymentsFilesTable();
-    	$newFile = $this->_bankgiroTable->createRow(array(
-    		Economy_Model_DbTable_BankgiroPaymentsFile::getColumnName('filename') => $filename,
-    		Economy_Model_DbTable_BankgiroPaymentsFile::getColumnName('addedBy') => $addedBy));
-    	return $newFile;
+    	return $this->_bankgiroTable->createRow()	->setColumn('filename', $filename)
+    												->setColumn('addedBy', $addedBy);
 	}
 
 	/**
@@ -141,9 +127,9 @@ class Economy_Model_BankgiroPaymentsFiles
 	*/
 	public function fetchRow ($columnName, $value)
 	{
-		$this->getBankgiroPaymentsFilesTable();
+		$tempRow = $this->getBankgiroPaymentsFilesTable()->createRow();
 		$select = $this->_bankgiroTable->select();
-		$select->where(Economy_Model_DbTable_BankgiroPaymentsFile::getColumnName($columnName), $value);
+		$select->where($tempRow->getColumn($columnName).' = ?', $value);
 		return $this->_bankgiroTable->fetchRow($select);
 	}
 
@@ -163,7 +149,6 @@ class Economy_Model_BankgiroPaymentsFiles
 		$this->_fileForm = new Economy_Form_BankgrioPaymentsFileUpload();
 		return $this->_fileForm;
 	}
-
 
 	public function validateUploadForm()
 	{
@@ -195,5 +180,22 @@ class Economy_Model_BankgiroPaymentsFiles
 		{
 			return 0;
 		}
+	}
+
+	/**
+	* Returns object parameters as an associative array.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	array of strings
+	*/
+	public function toArray()
+	{
+		$array = array();
+
+		foreach ($this->_bankgiroFiles as $bankgiroFile)
+		{
+			$array['bankgiroFile'][] = $bankgiroFile->toArray();
+		}
+		return $array;
 	}
 }

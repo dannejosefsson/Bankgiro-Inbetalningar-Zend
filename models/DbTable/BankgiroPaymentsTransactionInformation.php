@@ -1,47 +1,28 @@
 <?php
 
-class Economy_Model_DbTable_BankgiroPaymentsFile extends Zend_Db_Table_Row_Abstract
+class Economy_Model_DbTable_BankgiroPaymentsTransactionInformation extends Zend_Db_Table_Row_Abstract
 {
-    protected 	$_tableClass	= 'Economy_Model_DbTable_BankgiroPaymentsFiles';
-    protected 	$_primary		= 'file_id';
-    protected 	$_filename		= 'filename';
-    protected 	$_addedBy		= 'added_by';
-    protected 	$_timeAdded		= 'time_added';
+    protected 	$_tableClass		= 'Economy_Model_DbTable_BankgiroPaymentsTransactionInformations';
+    protected	$_primary			= 'information_id';
     /**
-    * Layout type
-    * Max length: 20
-    * @var string
+    * Transaction code.
+    * Possible values "20", "21", "22", "23".
+    * Max length: 2
+    * @var int
     */
-    protected $_layout			= 'layout';
+    protected	$_transactionId		= 'transaction_id';
     /**
-     * Version
-     * Max length: 2
-     * @var int
-     */
-    protected $_version			= 'version';
+    * Transaction information.
+    * Max value: 99
+    * @var int
+    */
+    protected 	$_informationRow	= 'information_row';
     /**
-     * Timestamp
-     * @var MySQL timestamp
-     */
-    protected $_timeCreated		= 'time_created';
-    /**
-     * Microseconds
-     * Length: 6
+     * Transaction information.
+     * Max length: 50
      * @var string
      */
-    protected $_microSeconds	= 'micro_seconds';
-    /**
-     * Test marker
-     * Values: 'P' or 'T'
-     * Length: 1
-     * @var string
-     */
-    protected $_testMarker		= 'test_marker';
-    /**
-    * Bool telling if the file data is parsed into the database.
-    * @var bool
-     */
-    protected $_treated			= 'treated';
+    protected	$_information		= 'information';
 
     /**
     * Checks if '_'.$propertyCamelCase is a property of the class
@@ -49,34 +30,12 @@ class Economy_Model_DbTable_BankgiroPaymentsFile extends Zend_Db_Table_Row_Abstr
     * @since	v0.2
     * @param	string $propertyCamelCase
     * @return	bool
-    */
+     */
     static function isProperty($propertyCamelCase)
     {
     	if (	array_key_exists('_'.$propertyCamelCase, get_class_vars(__CLASS__))	)
     	{
     		return true;
-    	}
-    	else
-    	{
-    		return false;
-    	}
-    }
-
-    /**
-    * Checks if $primary is a primary of the class
-    * @author	Daniel Josefsson <dannejosefsson@gmail.com>
-    * @since	v0.2
-    * @param	string primary
-    * @return	bool
-    */
-    public function isPrimary($primary)
-    {
-    	if (	is_array($this->_primary) 	)
-    	{
-    		if ( in_array($primary, $this->_primary) )
-    		{
-    			return true;
-    		}
     	}
     	else
     	{
@@ -91,18 +50,18 @@ class Economy_Model_DbTable_BankgiroPaymentsFile extends Zend_Db_Table_Row_Abstr
     * @param	string $propertyName
     * @param	mixed $value
     * @return	Economy_Model_DbTable_BankgiroPaymentsTransaction|boolean
-    */
+     */
     public function setColumn( $propertyName, $value )
     {
     	if ( $this->isProperty($propertyName) )
     	{
     		$this->{$this->{'_'.$propertyName}} = $value;
     		return $this;
-	    }
-	    else
-	    {
-	    	return false;
-	    }
+    	}
+    	else
+    	{
+    		return false;
+    	}
     }
 
     /**
@@ -116,12 +75,7 @@ class Economy_Model_DbTable_BankgiroPaymentsFile extends Zend_Db_Table_Row_Abstr
     {
     	if ( $this->isProperty($propertyName) )
     	{
-
     		return $this->{$this->{'_'.$propertyName}};
-    	}
-    	elseif ($this->isPrimary($propertyName))
-    	{
-    		return $propertyName;
     	}
     	else
     	{

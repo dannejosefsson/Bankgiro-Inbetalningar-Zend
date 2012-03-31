@@ -17,6 +17,7 @@ class Economy_Model_BankgiroPaymentsFile
 	* @var array BankgiroPaymentsDeposit
 	*/
 	protected $_deposits;
+	protected $_depositsTable;
 
 	protected $_fileData;
 
@@ -75,6 +76,44 @@ class Economy_Model_BankgiroPaymentsFile
 	}
 
 	/**
+	* Sets Economy_Model_DbTable_BankgiroPaymentsDeposits table.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @param 	Economy_Model_BankgiroPaymentsDeposits $dbTable
+	* @throws Exception
+	* @return Economy_Model_BankgiroPaymentsFile
+	*/
+	public function setBankgiroPaymentsDepositsTable($dbTable)
+	{
+		if (is_string($dbTable))
+		{
+			$dbTable = new $dbTable();
+		}
+		if (!$dbTable instanceof Economy_Model_DbTable_BankgiroPaymentsDeposits)
+		{
+			throw new Exception('Invalid table data gateway provided');
+		}
+		$this->_depositsTable = $dbTable;
+		return $this;
+	}
+
+	/**
+	 * Get BankgiroPaymentsDeposits table.
+	 * @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	 * @since	v0.2
+	 * @return	Economy_Model_DbTable_BankgiroPaymentsDeposits
+	 */
+	public function getBankgiroPaymentsDepositsTable()
+	{
+		if (null === $this->_depositsTable)
+		{
+			$this->setBankgiroPaymentsDepositsTable('Economy_Model_DbTable_BankgiroPaymentsDeposits');
+		}
+		return $this->_depositsTable;
+	}
+
+
+	/**
 	* Sets table row
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
 	* @since	v0.2
@@ -96,43 +135,6 @@ class Economy_Model_BankgiroPaymentsFile
 	public function getTableRow()
 	{
 		return $this->_bankgiroFileTableRow;
-	}
-
-	/**
-	* Returns table row column value
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
-	* @return	mixed
-	*/
-	public function getTableRowColumnValue($columnName)
-	{
-		if ( $this->_bankgiroFileTableRow->getColumnName($columnName) )
-		{
-			return $this->_bankgiroFileTableRow->__get($this->_bankgiroFileTableRow->getColumnName($columnName));
-		}
-		else
-		{
-			return null;
-		}
-	}
-
-	/**
-	* Sets table row column value
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.2
-	* @return	Economy_Model_BankgiroPaymentsFile $this or null
-	*/
-	public function setTableRowColumnValue($columnName, $value)
-	{
-		if ( $this->_bankgiroFileTableRow->getColumnName($columnName) )
-		{
-			$this->_bankgiroFileTableRow->__set($this->_bankgiroFileTableRow->getColumnName($columnName), $value);
-			return $this;
-		}
-		else
-		{
-			return null;
-		}
 	}
 
 	/**
@@ -167,7 +169,15 @@ class Economy_Model_BankgiroPaymentsFile
 	*/
 	public function saveFile()
 	{
-		$this->_bankgiroFileTableRow->save();
+
+		//$this->getTableRow()->save();
+		echo "<pre>";
+		//var_dump($this->getTableRow());//, $this->getTableRow()->getTable()
+		echo "</pre>";
+		foreach ($this->_deposits as $deposit)
+		{
+			$deposit->save();
+		}
 		return $this;
 	}
 
@@ -221,9 +231,9 @@ class Economy_Model_BankgiroPaymentsFile
 		$extraReferences = 0;
 		foreach ($this->_deposits as $deposit)
 		{
-			$paymentPosts += $deposit->getPaymentCount();
-			$deductionPosts += $deposit->getDeductionCount();
-			$extraReferences+= $deposit->getExtraReferencesCount();
+			$paymentPosts		+= $deposit->getPaymentCount();
+			$deductionPosts		+= $deposit->getDeductionCount();
+			$extraReferences	+= $deposit->getExtraReferencesCount();
 		}
 		$postsCounts = array(	$paymentPosts,
 								$deductionPosts,
@@ -254,7 +264,8 @@ class Economy_Model_BankgiroPaymentsFile
 	*/
 	public function addDeposit()
 	{
-		$this->_deposits[] = new BankgiroPaymentsDeposit();
+		$this->getBankgiroPaymentsDepositsTable();
+		$this->_deposits[] = new Economy_Model_BankgiroPaymentsDeposit(array('depositRow' => $this->_depositsTable->createRow()));
 		return $this;
 	}
 
@@ -291,12 +302,12 @@ class Economy_Model_BankgiroPaymentsFile
 	*/
 	private function parseStartPost( $lineData )
 	{
-		$this->setTableRowColumnValue('layout', (trim(substr($lineData, 0, 20))));
-		$this->setTableRowColumnValue('version', substr($lineData, 20, 2));
-		$this->setTableRowColumnValue('timeCreated', date(	'Y-m-d H:i:s',
+		$this->getTableRow()->setColumn('layout', (trim(substr($lineData, 0, 20))));
+		$this->getTableRow()->setColumn('version', substr($lineData, 20, 2));
+		$this->getTableRow()->setColumn('timeCreated', date(	'Y-m-d H:i:s',
 									strtotime(substr($lineData, 22, 8).'T'. substr($lineData, 30, 6))));
-		$this->setTableRowColumnValue('microSeconds', substr($lineData, 36, 6));
-		$this->setTableRowColumnValue('testMarker', substr($lineData, 42, 1));
+		$this->getTableRow()->setColumn('microSeconds', substr($lineData, 36, 6));
+		$this->getTableRow()->setColumn('testMarker', substr($lineData, 42, 1));
 		// Reserved placeholders (lineData[43-77]) are not used.
 		return $this;
 	}
@@ -328,7 +339,7 @@ class Economy_Model_BankgiroPaymentsFile
 								);
 
 		$return = true;
-		/*$parsedCounts = $this->getPostsCounts();
+		$parsedCounts = $this->getPostsCounts();
 		for ($i = 0; $i < sizeof($parsedCounts); $i++)
 		{
 			if ( !$this->checkConsistancy(	$parsedCounts[$i],
@@ -337,11 +348,12 @@ class Economy_Model_BankgiroPaymentsFile
 			{
 				$return = false;
 			}
-		}*/
+
+		}
 		// Reserved placeholders (lineData[32-77]) are not used.
 		if ( $return )
 		{
-			$this->setTableRowColumnValue('treated', 1);
+			$this->getTableRow()->setColumn('treated', 1);
 			$this->saveFile();
 		}
 		return $return;
@@ -357,7 +369,7 @@ class Economy_Model_BankgiroPaymentsFile
 	{
 		// Clear array to make sure that not old data is parsed again.
 		$this->_fileData=array();
-		if ($openFile = file($this->getTableRowColumnValue('filename')))
+		if ($openFile = file($this->getTableRow()->getColumn('filename')))
 		{
 			foreach ($openFile as $lineNum => $line)
 			{
@@ -406,7 +418,7 @@ class Economy_Model_BankgiroPaymentsFile
 						break;
 
 						// Opening post
-	/*				case '05':
+					case '05':
 						if ( 	strcmp($this->_state, self::STATE_START_POST_PARSED) ||
 								strcmp($this->_state, self::STATE_SUMMATION_POST_PARSED) )
 						{
@@ -457,7 +469,7 @@ class Economy_Model_BankgiroPaymentsFile
 							$this->setError('Opening post or payment summation post was not parsed before next opening post.');
 						}
 						break;
-*/
+
 						// End post
 					case '70':
 						if ( 	strcmp($this->_state, self::STATE_START_POST_PARSED) ||
@@ -473,7 +485,10 @@ class Economy_Model_BankgiroPaymentsFile
 						break;
 
 					default:
-						$this->setError("Line error: $line");
+						if ( "" != (string)str_replace(array("\r", "\r\n", "\n", ' '), '', $line) )
+						{
+							$this->setError("Line error: $line");
+						}
 						break;
 				}
 			}
@@ -508,5 +523,22 @@ class Economy_Model_BankgiroPaymentsFile
 			$this->setError($error);
 			return false;
 		}
+	}
+
+	/**
+	* Returns object parameters as an associative array.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	array of strings
+	*/
+	public function toArray()
+	{
+		$array = array();
+
+		foreach ($this->_deposits as $deposit)
+		{
+			$array['deposit'][] = $deposit->toArray();
+		}
+		return $array;
 	}
 }

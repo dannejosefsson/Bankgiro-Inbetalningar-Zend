@@ -22,7 +22,7 @@
 ?>
 <tr>
     <td>
-		<a href=viewOcr?fileId="<?PHP echo $bankgiroPaymentsFile->bankgiro_file_id;?>">
+		<a href=viewOcr?fileId="<?PHP echo $bankgiroPaymentsFile->file_id;?>">
         <?PHP
         	$filenameParts = pathinfo($bankgiroPaymentsFile->filename);
         	if ( isset($filenameParts['extension']) )
@@ -51,7 +51,7 @@
         }
         else
         {
-        	echo '<a href=extract-file?'.$this->queries['extractFile'].'="'.$bankgiroPaymentsFile->bankgiro_file_id.'" >Behandla</a>';
+        	echo '<a href=extract-file?'.$this->queries['extractFile'].'='.$bankgiroPaymentsFile->file_id.' >Behandla</a>';
         }
         ?>
     </td>

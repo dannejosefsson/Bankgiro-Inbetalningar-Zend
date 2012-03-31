@@ -11,338 +11,150 @@
 */
 class Economy_Model_BankgiroPaymentsTransaction
 {
-	/**
-	* Transaction code.
-	* Possible values "20", "21", "22", "23".
-	* Max length: 2
-	* @var int
-	*/
-	protected	$_transactionCode;
-	/**
-	* Sender Bankgiro account number.
-	* Max length: 10
-	* @var int
-	*/
-	protected	$_senderBankgiroAccountNumber;
-	/**
-	* Amount.
-	* Last two digits are ören.
-	* Max length 18
-	* @var int
-	 */
-	protected	$_amount;
-	/**
-	* Reference
-	* Can be both int or string. Depends on $_referenceCode.
-	* Max length: 25
-	* @var mixed
-	*/
-	protected	$_reference;
-	/**
-	* Reference code
-	* Length: 1
-	* Tells what kind of reference $_reference is.
-	* @var int
-	*/
-	protected	$_referenceCode;
-	/**
-	* Channel code
-	* Length: 1
-	* @var int
-	*/
-	protected	$_channelCode;
-	/**
-	* Serial number
-	* Contains a two year unique serial number.
-	* Is also used as image key.
-	* Length: 12
-	* @var string
-	*/
-	protected	$_serialNumber;
-	/**
-	* Image marker
-	* Tells if a image is connected to the transaction.
-	* @var bool
-	*/
-	protected	$_imageMarker;
-	/**
-	* Deduction code
-	* Used when transaction code is "21"
-	* Tells if there are any reminder of the invoice.
-	* Length: 1
-	* @var int
-	*/
-	protected	$_deductionCode;
+	protected	$_transactionTableRow;
+
 	/**
 	* Information
 	* Stores data from information post type (25).
 	* Up to 99 information posts can be transmitted.
 	* Max length of string: 50
-	* @var array of strings
+	* @var Economy_Model_DbTable_BankgiroPaymentsTransactionInformations
 	*/
-	protected	$_information;
-	/**
-	* Name of the sender
-	* Two strings of names is stored together in this string.
-	* Max length of strings: 35
-	* Max total Length: 70
-	* @var string
-	*/
-	protected	$_names;
-	/**
-	* Adress1 field stores address and postal number
-	* Address max length: 35
-	* Postal number max length: 9
-	* @var array
-	*/
-	protected	$_address1;
-	/**
-	* Adress2 field stores city, country and countrycode
-	* City max length: 35
-	* Country max length: 35
-	* Country max code length: 2
-	* Country and country code are blank if it is a domestic transaction.
-	* @var array
-	*/
-	protected	$_address2;
-	/**
-	* Sender organisation number
-	* Max length: 12
-	* @var int
-	*/
-	protected	$_organisationNumber;
+	protected	$_informationTable;
+	protected	$_informationRows;
 
 	/**
 	* Array with extra references
 	* @var array of BankgiroPaymentTransaction
 	 */
 	protected	$_extraReferences;
+	protected	$_extraReferencesTable;
 
 	/**
 	*
 	* @since	v0.2
 	*/
-	public function __construct()
+	public function __construct( $options = null )
 	{
-		$this->_names = array();
+		if ( is_array($options) )
+		{
+			if (array_key_exists('transactionRow', $options))
+			{
+				$this->setTableRow($options['transactionRow']);
+			}
+		}
+		elseif ( is_string( $options ) )
+		{
+
+		}
+		elseif (is_bool($options))
+		{
+		}
+		else
+		{
+			$this->setTableRow(new Economy_Model_DbTable_BankgiroPaymentsTransaction());
+		}
+		$this->getBankgiroPaymentsTransactionInformationsTable();
 		$this->_extraReferences = array();
+		$this->_informationRows = array();
 	}
 
 	/**
-	* Returns transaction code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
+	* Sets table row
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @param	string $tableRow
+	* @return	Economy_Model_BankgiroPaymentsDeposit
 	*/
-	public function getTransactionCode()
+	public function setTableRow( $tableRow )
 	{
-		return $this->_transactionCode;
-	}
-
-	/**
-	* Sets new transaction code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $transactionCode
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setTransactionCode( $transactionCode )
-	{
-		$this->_transactionCode = $transactionCode;
+		$this->_transactionTableRow = $tableRow;
 		return $this;
 	}
 
 	/**
-	* Returns sender bankgiro account number.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getSenderBankgiroAccountNumber()
+	 * Returns table row
+	 * @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	 * @since	v0.2
+	 * @return	Economy_Model_DbTable_BankgiroPaymentsDeposit
+	 */
+	public function getTableRow()
 	{
-		return $this->_senderBankgiroAccountNumber;
+		return $this->_transactionTableRow;
 	}
 
 	/**
-	* Sets new sender bankgiro account number.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $senderBankgiroAccountNumber
-	* @return	BankgiroPaymentsTransaction
+	* Sets Economy_Model_DbTable_BankgiroPaymentsTransactionInformations table.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @param 	Economy_Model_DbTable_BankgiroPaymentsTransactionInformations $dbTable
+	* @throws 	Exception
+	* @return 	Economy_Model_BankgiroPaymentsTransaction
 	*/
-	public function setSenderBankgiroAccountNumber( $senderBankgiroAccountNumber )
+	public function setBankgiroPaymentsTransactionInformationsTable($dbTable)
 	{
-		$this->_senderBankgiroAccountNumber = $senderBankgiroAccountNumber;
+		if (is_string($dbTable))
+		{
+		$dbTable = new $dbTable();
+		}
+		if (!$dbTable instanceof Economy_Model_DbTable_BankgiroPaymentsTransactionInformations)
+		{
+			throw new Exception('Invalid table data gateway provided');
+		}
+		$this->_informationTable = $dbTable;
 		return $this;
 	}
 
 	/**
-	* Returns amount.
-	* @author	Daniel Josefsson
-	* @since	v0.1
+	* Get BankgiroPaymentsTransactionInformation table.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	Economy_Model_DbTable_BankgiroPaymentsTransactionInformations
 	*/
-	public function getAmount()
+	public function getBankgiroPaymentsTransactionInformationsTable()
 	{
-		return $this->_amount;
+		if (null === $this->_informationTable)
+		{
+			$this->setBankgiroPaymentsTransactionInformationsTable('Economy_Model_DbTable_BankgiroPaymentsTransactionInformations');
+		}
+		return $this->_informationTable;
 	}
 
 	/**
-	* Sets new amount.
-	* @author	Daniel Josefsson
-	* @since	v
-	* @param	int $amount
-	* @return	BankgiroPaymentsTransaction
+	* Sets extra references (Economy_Model_DbTable_BankgiroPaymentsTransactions) table.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @param	Economy_Model_DbTable_BankgiroPaymentsTransactions $dbTable
+	* @throws 	Exception
+	* @return 	Economy_Model_BankgiroPaymentsTransaction
 	*/
-	public function setAmount( $amount )
+	public function setBankgiroPaymentsExtraReferencesTable($dbTable)
 	{
-		$this->_amount = $amount;
+		if (is_string($dbTable))
+		{
+			$dbTable = new $dbTable();
+		}
+		if (!$dbTable instanceof Economy_Model_DbTable_BankgiroPaymentsTransactions)
+		{
+			throw new Exception('Invalid table data gateway provided');
+		}
+		$this->_extraReferencesTable = $dbTable;
 		return $this;
 	}
 
 	/**
-	* Returns reference.
-	* @author	Daniel Josefsson
-	* @since	v0.1
+	* Get extra references table.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	Economy_Model_DbTable_BankgiroPaymentsTransactions
 	*/
-	public function getReference()
+	public function getBankgiroPaymentsExtraReferencesTable()
 	{
-		return $this->_reference;
-	}
-
-	/**
-	* Sets new reference.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $reference
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setReference( $reference )
-	{
-		$this->_reference = $reference;
-		return $this;
-	}
-
-	/**
-	* Returns reference code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getReferenceCode()
-	{
-		return $this->_referenceCode;
-	}
-
-	/**
-	* Sets new reference code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $referenceCode
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setReferenceCode( $referenceCode )
-	{
-		$this->_referenceCode = $referenceCode;
-		return $this;
-	}
-
-	/**
-	* Returns channel code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getChannelCode()
-	{
-		return $this->_channelCode;
-	}
-
-	/**
-	* Sets new channel code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $channelCode
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setChannelCode( $channelCode )
-	{
-		$this->_channelCode = $channelCode;
-		return $this;
-	}
-
-	/**
-	* Returns serial number.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getSerialNumber()
-	{
-		return $this->_serialNumber;
-	}
-
-	/**
-	* Sets new serial number.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $serialNumber
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setSerialNumber( $serialNumber )
-	{
-		$this->_serialNumber = $serialNumber;
-		return $this;
-	}
-
-	/**
-	* Returns image marker.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getImageMarker()
-	{
-		return $this->_imageMarker;
-	}
-
-	/**
-	* Sets new image marker.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $imageMarker
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setImageMarker( $imageMarker )
-	{
-		$this->_imageMarker = $imageMarker;
-		return $this;
-	}
-
-	/**
-	* Returns deduction code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getDeductionCode()
-	{
-		return $this->_deductionCode;
-	}
-
-	/**
-	* Sets new deduction code.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $deductionCode
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setDeductionCode( $deductionCode )
-	{
-		$this->_deductionCode = $deductionCode;
-		return $this;
-	}
-
-	/**
-	* Returns information.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getInformation()
-	{
-		return $this->_information;
+		if (null === $this->_extraReferencesTable)
+		{
+			$this->setBankgiroPaymentsExtraReferencesTable('Economy_Model_DbTable_BankgiroPaymentsTransactions');
+		}
+		return $this->_extraReferencesTable;
 	}
 
 	/**
@@ -354,99 +166,10 @@ class Economy_Model_BankgiroPaymentsTransaction
 	*/
 	public function setInformation( $information )
 	{
-		$this->_information[] = $information;
-		return $this;
-	}
-
-	/**
-	* Returns name.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getNames( $index )
-	{
-		return $this->_names[$index];
-	}
-
-	/**
-	* Sets new name.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $name
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setNames( $names = array() )
-	{
-		$this->_names[] = $names;
-		return $this;
-	}
-
-	/**
-	* Returns address1.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getAddress1()
-	{
-		return $this->_address1;
-	}
-
-	/**
-	* Sets new address1.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $address1
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setAddress1( $address1 )
-	{
-		$this->_address1 = $address1;
-		return $this;
-	}
-
-	/**
-	* Returns address2.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getAddress2()
-	{
-		return $this->_address2;
-	}
-
-	/**
-	* Sets new address2.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $address2
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setAddress2( $address2 )
-	{
-		$this->_address2 = $address2;
-		return $this;
-	}
-
-	/**
-	* Returns organisation number.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	*/
-	public function getOrganisationNumber()
-	{
-		return $this->_organisationNumber;
-	}
-
-	/**
-	* Sets new organisation number.
-	* @author	Daniel Josefsson
-	* @since	v0.1
-	* @param	int $organisationNumber
-	* @return	BankgiroPaymentsTransaction
-	*/
-	public function setOrganisationNumber( $organisationNumber )
-	{
-		$this->_organisationNumber = $organisationNumber;
+		$this->_informationRows[] = $this->_informationTable->createRow();
+		$this->_informationRows[sizeof($this->_informationRows) - 1]
+					->setColumn('informationRow', sizeof($this->_informationRows))
+					->setColumn('information', $information);
 		return $this;
 	}
 
@@ -508,7 +231,8 @@ class Economy_Model_BankgiroPaymentsTransaction
 	*/
 	public function addExtraReference($postType)
 	{
-		$this->_extraReferences[] = new BankgiroPaymentsTransaction();
+		$this->getBankgiroPaymentsExtraReferencesTable();
+		$this->_extraReferences[] = new Economy_Model_BankgiroPaymentsTransaction(array('transactionRow' => $this->_extraReferencesTable->createRow()));
 
 		return $this;
 	}
@@ -522,6 +246,17 @@ class Economy_Model_BankgiroPaymentsTransaction
 	public function getExtraReferencesCount()
 	{
 		return sizeof($this->_extraReferences);
+	}
+
+	/**
+	* Returns transaction amount.
+	* @author	Daniel Josefsson
+	* @since	v0.2
+	* @return	int
+	*/
+	public function getAmount()
+	{
+		return $this->getTableRow()->getColumn('amount');
 	}
 
 	/**
@@ -548,7 +283,6 @@ class Economy_Model_BankgiroPaymentsTransaction
 			case '23':
 				$extraReferenceIndex = $this->addExtraReference($postType)->lastExtraReferenceIndex();
 				$return = $this->getExtraReference($extraReferenceIndex)->parsePaymentPost($line);
-
 				break;
 			case '25':
 				$return = $this->parseInformationPost($postData);
@@ -562,7 +296,8 @@ class Economy_Model_BankgiroPaymentsTransaction
 			case '28':
 				$return = $this->parseAddress2Post($postData);
 				break;
-
+			case '29':
+				$return = $this->parseOrganisationNumberPost($postData);
 			default:
 				break;
 		}
@@ -578,14 +313,14 @@ class Economy_Model_BankgiroPaymentsTransaction
 	*/
 	private function parsePaymentPost( $post )
 	{
-		$this->setTransactionCode(substr($post, 0, 2));
-		$this->setSenderBankgiroAccountNumber((int) substr($post, 2, 10));
-		$this->setReferenceCode((int) substr($post, 55, 1));
-		$this->setReference(trim(substr($post, 12, 25), ' '));
-		$this->setAmount((int) substr($post, 37, 18));
-		$this->setChannelCode((int) substr($post, 56, 1));
-		$this->setSerialNumber(substr($post, 57, 12));
-		$this->setImageMarker((int) substr($post, 69, 1));
+		$this->getTableRow()->setColumn('transactionCode', substr($post, 0, 2));
+		$this->getTableRow()->setColumn('senderBankgiroAccountNumber', (int) substr($post, 2, 10));
+		$this->getTableRow()->setColumn('referenceCode', (int) substr($post, 55, 1));
+		$this->getTableRow()->setColumn('reference', trim(substr($post, 12, 25), ' '));
+		$this->getTableRow()->setColumn('amount', (int) substr($post, 37, 18));
+		$this->getTableRow()->setColumn('channelCode', (int) substr($post, 56, 1));
+		$this->getTableRow()->setColumn('serialNumber', substr($post, 57, 12));
+		$this->getTableRow()->setColumn('imageMarker', (int) substr($post, 69, 1));
 		// Reserved placeholders (post[70-79]) are not used.
 		return true;
 	}
@@ -600,7 +335,7 @@ class Economy_Model_BankgiroPaymentsTransaction
 	private function parseDeductionPost( $post )
 	{
 		$this->parsePaymentPost($post);
-		$this->setDeductionCode((int) substr($post, 70, 1));
+		$this->getTableRow()->setColumn('deductionCode', (int) substr($post, 70, 1));
 		// Reserved placeholders (post[70-79]) are not used.
 		return true;
 	}
@@ -628,8 +363,8 @@ class Economy_Model_BankgiroPaymentsTransaction
 	*/
 	private function parseNamePost( $postData )
 	{
-		$this->setNames(array(	trim(substr($postData, 0, 35), ' '),
-								trim(substr($postData, 35, 35), ' ')));
+		$this->getTableRow()->setColumn('name1', trim(substr($postData, 0, 35), ' '));
+		$this->getTableRow()->setColumn('name2', trim(substr($postData, 35, 35), ' '));
 		// Reserved placeholders (postData[70-77]) are not used.
 		return true;
 	}
@@ -643,8 +378,8 @@ class Economy_Model_BankgiroPaymentsTransaction
 	*/
 	private function parseAddress1Post( $postData )
 	{
-		$this->setAddress1(array(	trim(substr($postData, 0, 35), ' '),
-										trim(substr($postData, 35, 9), ' ')));
+		$this->getTableRow()->setColumn('address', trim(substr($postData, 0, 35), ' '));
+		$this->getTableRow()->setColumn('postalNumber', trim(substr($postData, 35, 9), ' '));
 		// Reserved placeholders (postData[44-77]) are not used.
 		return true;
 	}
@@ -658,10 +393,64 @@ class Economy_Model_BankgiroPaymentsTransaction
 	*/
 	private function parseAddress2Post( $postData )
 	{
-		$this->setAddress2(array(	trim(substr($postData, 0, 35), ' '),
-										trim(substr($postData, 35, 35), ' '),
-										trim(substr($postData, 70, 2)))		);
+		$this->getTableRow()->setColumn('city', trim(substr($postData, 0, 35), ' '));
+		$this->getTableRow()->setColumn('country', trim(substr($postData, 35, 35), ' '));
+		$this->getTableRow()->setColumn('countryCode', trim(substr($postData, 70, 2), ' '));
 		// Reserved placeholders (postData[72-77]) are not used.
 		return true;
+	}
+
+	/**
+	* Parses organisation number post (29).
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @param 	string	$postData
+	* @return	bool
+	*/
+	private function parseOrganisationNumberPost( $postData )
+	{
+		$this->getTableRow()->setColumn('organisationNumber', (int) substr($postData, 0, 12));
+		// Reserved placeholders (postData[12-77]) are not used.
+		return true;
+	}
+
+	public function toArray(  )
+	{
+		$array = array();
+		// Parameters from table row.
+		$rowArray = $this->getTableRow()->toArray();
+		foreach ($rowArray['_data'] as $key => $value)
+		{
+			$array[$key] = $value;
+		}
+		// Parameters from information rows
+		foreach ($this->_informationRows as $informationRow)
+		{
+			$info = $informationRow->toArray();
+			$array['information'][$info['_data']['information_row']]
+				= array('information_id' => $info['_data']['information_id'],
+						'information' => $info['_data']['information']);
+		}
+		// Parameters from extra references.
+		foreach ($this->_extraReferences as $key => $extraReference)
+		{
+			$array['extra_reference'][$key] = $extraReference->toArray();
+		}
+		return $array;
+	}
+
+
+	public function save()
+	{
+		$this->getTableRow()->save();
+		foreach ($this->_informationRows as $informationRow)
+		{
+			$informationRow->save();
+		}
+		foreach ($this->_extraReferences as $extraReference)
+		{
+			$extraReference->save();
+		}
+
 	}
 }

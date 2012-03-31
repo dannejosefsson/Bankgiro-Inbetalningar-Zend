@@ -12,80 +12,16 @@
 class Economy_Model_BankgiroPaymentsDeposit
 {
 	/**
-	* Bankgiro account number.
-	* Max length: 10
-	* Can be zero padded.
-	* @var int
-	*/
-	protected	$_bankgiroAccountNumber;
-
-	/**
-	* Plusgiro account number.
-	* Max length: 10
-	* Can be zero padded.
-	* @var string
-	*/
-	protected	$_plusgiroAccountNumber;
-
-	/**
-	* Bank account number.
-	* Divided into clearing number and account number.
-	* Max length clearing number: 4
-	* Max length account number: 12
-	* Can be zero padded.
-	* @var array
-	*/
-	protected	$_bankAccountNumber;
-
-	/**
-	* Currency.
-	* Possible values: "SEK", "EUR".
-	* @var string
-	*/
-	protected	$_currency;
-
-	/**
-	* Deposit number.
-	* Unique per bankgiro account number and year.
-	* Max length: 5
-	* Can be zero padded.
-	* @var int
-	 */
-	protected	$_depositNumber;
-
-	/**
-	* Payment date.
-	* YYYYMMDD
-	* @var string
-	*/
-	protected	$_paymentDate;
-
-	/**
-	* Payment value.
-	* Max length: 18
-	* Can be zero padded.
-	* @var int
-	*/
-	protected	$_paymentValue;
-
-	/**
 	* Payment count.
 	* @var int
 	*/
 	protected	$_paymentCount;
 
 	/**
-	* Deduction count.
-	* @var int
-	*/
+	 * Deduction count.
+	 * @var int
+	 */
 	protected	$_deductionCount;
-
-	/**
-	* Type of payment.
-	* Possible values "K", "D", "S".
-	* @var unknown_type
-	*/
-	protected	$_paymentType;
 
 	/**
 	* Array storing errors
@@ -93,12 +29,15 @@ class Economy_Model_BankgiroPaymentsDeposit
 	 */
 	protected	$_errors;
 
+	protected	$_depositTableRow;
+
 	/**
 	* Transactions
 	* Stores posts from 20 to 29
 	* @var array BankgiroPaymentsTransaction
 	*/
 	protected	$_transactions;
+	protected	$_transactionsTable;
 
 	/**
 	*
@@ -110,9 +49,9 @@ class Economy_Model_BankgiroPaymentsDeposit
 	{
 		if ( is_array($options) )
 		{
-			$i = 0;
-			if ( is_bool($options[$i]) )
+			if (array_key_exists('depositRow', $options))
 			{
+				$this->setTableRow($options['depositRow']);
 			}
 		}
 		elseif ( is_string( $options ) )
@@ -124,144 +63,34 @@ class Economy_Model_BankgiroPaymentsDeposit
 		}
 		else
 		{
+			$this->setTableRow(new Economy_Model_DbTable_BankgiroPaymentsDeposit());
 		}
 		$this->_errors = array();
-		$this->setPaymentCount(0)->setDeductionCount(0)->setPaymentValue(0);
+		$this->setPaymentCount(0)->setDeductionCount(0);
 	}
 
 	/**
-	* Returns Bankgiro account number.
+	* Sets table row
 	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
+	* @since	v0.2
+	* @param	string $tableRow
+	* @return	Economy_Model_BankgiroPaymentsDeposit
+	*/
+	public function setTableRow( $tableRow )
+	{
+		$this->_depositTableRow = $tableRow;
+		return $this;
+	}
+
+	/**
+	 * Returns table row
+	 * @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	 * @since	v0.2
+	 * @return	Economy_Model_DbTable_BankgiroPaymentsDeposit
 	 */
-	public function getBankgiroAccountNumber()
+	public function getTableRow()
 	{
-		return $this->_bankgiroAccountNumber;
-	}
-
-	/**
-	* Returns Plusgiro account number.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getPlusgiroAccountNumber()
-	{
-		return $this->_plusgiroAccountNumber;
-	}
-
-	/**
-	* Returns bank account number.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getBankAccountNumber()
-	{
-		return $this->_bankAccountNumber;
-	}
-
-	/**
-	* Sets new Bankgiro account number.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param 	int $bankgiroAccountNumber
-	* @return	BankgiroPaymentDeposit
-	 */
-	public function setBankgiroAccountNumber( $bankgiroAccountNumber )
-	{
-		$this->_bankgiroAccountNumber = $bankgiroAccountNumber;
-		return $this;
-	}
-
-	/**
-	* Sets new Plusgiro account number.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param 	string $plusgiroAccountNumber
-	* @return	BankgiroPaymentDeposit
-	*/
-	public function setPlusgiroAccountNumber( $plusgiroAccountNumber )
-	{
-		$this->_plusgiroAccountNumber = $plusgiroAccountNumber;
-		return $this;
-	}
-
-	/**
-	* Sets new bank account number.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param 	int $bankgiroAccountNumber
-	* @return	BankgiroPaymentDeposit
-	*/
-	public function setBankAccountNumber( $bankAccountNumber )
-	{
-	$this->_bankAccountNumber = $bankAccountNumber;
-	return $this;
-	}
-
-	/**
-	* Returns currency.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getCurrency()
-	{
-		return $this->_currency;
-	}
-
-	/**
-	* Returns deposit number.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getDepositNumber()
-	{
-		return $this->_DepositNumber;
-	}
-
-	/**
-	* Sets new currency.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param 	int $currency
-	* @return	BankgiroPaymentDeposit
-	*/
-	public function setCurrency( $currency )
-	{
-		$this->_currency = $currency;
-		return $this;
-	}
-
-	/**
-	* Sets new deposit number.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	* @param 	int $depositNumber
-	* @return	BankgiroPaymentDeposit
-	*/
-	public function setDepositNumber( $depositNumber )
-	{
-		$this->_depositNumber = $depositNumber;
-		return $this;
-	}
-
-	/**
-	* Returns payment date.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getPaymentDate()
-	{
-		return $this->_paymentDate;
-	}
-
-	/**
-	* Returns payment value.
-	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
-	* @since	v0.1
-	*/
-	public function getPaymentValue()
-	{
-		return $this->_paymentValue;
+		return $this->_depositTableRow;
 	}
 
 	/**
@@ -276,12 +105,13 @@ class Economy_Model_BankgiroPaymentsDeposit
 	{
 		if ( '20' == $postType )
 		{
-			$this->_paymentValue += $value;
+			// Value is positive.
 		}
 		elseif ( '21' == $postType )
 		{
-			$this->_paymentValue -= $value;;
+			$value = -$value;
 		}
+		$this->getTableRow()->addAmount($value);
 		return $this;
 	}
 
@@ -436,7 +266,8 @@ class Economy_Model_BankgiroPaymentsDeposit
 	*/
 	public function addTransaction($postType)
 	{
-		$this->_transactions[] = new BankgiroPaymentsTransaction();
+		$this->getBankgiroPaymentsTransactionsTable();
+		$this->_transactions[] = new Economy_Model_BankgiroPaymentsTransaction(array('transactionRow' => $this->_transactionsTable->createRow()));
 
 		if ( '20' == $postType )
 		{
@@ -514,6 +345,43 @@ class Economy_Model_BankgiroPaymentsDeposit
 	}
 
 	/**
+	* Sets Economy_Model_DbTable_BankgiroPaymentsTransactions table.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @param	Economy_Model_DbTable_BankgiroPaymentsTransactions $dbTable
+	* @throws 	Exception
+	* @return 	Economy_Model_BankgiroPaymentsDeposit
+	*/
+	public function setBankgiroPaymentsTransactionsTable($dbTable)
+	{
+		if (is_string($dbTable))
+		{
+			$dbTable = new $dbTable();
+		}
+		if (!$dbTable instanceof Economy_Model_DbTable_BankgiroPaymentsTransactions)
+		{
+			throw new Exception('Invalid table data gateway provided');
+		}
+		$this->_transactionsTable = $dbTable;
+		return $this;
+	}
+
+	/**
+	* Get BankgiroPaymentsTransactions table.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	Economy_Model_DbTable_BankgiroPaymentsTransactions
+	*/
+	public function getBankgiroPaymentsTransactionsTable()
+	{
+		if (null === $this->_transactionsTable)
+		{
+			$this->setBankgiroPaymentsTransactionsTable('Economy_Model_DbTable_BankgiroPaymentsTransactions');
+		}
+		return $this->_transactionsTable;
+	}
+
+	/**
 	* Parses line,given with the syntax of posts 5 and 15 in Bankgiro Inbetalningar.
 	* Transfers lines with post type 20-29 to BankgiroPaymentsTransaction objects for
 	* parsing.
@@ -559,9 +427,9 @@ class Economy_Model_BankgiroPaymentsDeposit
 	*/
 	private function parseOpeningPost( $lineData )
 	{
-		$this->setBankgiroAccountNumber((int) substr($lineData, 0, 10));
-		$this->setPlusgiroAccountNumber(ltrim(substr($lineData, 10, 10), "0 "));
-		$this->setCurrency(substr($lineData, 20, 3));
+		$this->getTableRow()->setColumn('bankgiroAccountNumber', (int) substr($lineData, 0, 10));
+		$this->getTableRow()->setColumn('plusgiroAccountNumber', ltrim(substr($lineData, 10, 10), "0 "));
+		$this->getTableRow()->setColumn('currency', substr($lineData, 20, 3));
 		// Reserved placeholders (lineData[23-77]) are not used.
 		return true;
 	}
@@ -575,15 +443,15 @@ class Economy_Model_BankgiroPaymentsDeposit
 	*/
 	private function parseSummationPost( $lineData )
 	{
-		$this->setBankAccountNumber((int) substr($lineData, 0, 35));
-		$this->setPaymentDate(substr($lineData, 35, 8));
-		$this->setDepositNumber((int) substr($lineData, 43, 5));
+		$this->getTableRow()->setColumn('bankAccountNumber', (int) substr($lineData, 0, 35));
+		$this->getTableRow()->setColumn('paymentDate', substr($lineData, 35, 8));
+		$this->getTableRow()->setColumn('depositNumber', (int) substr($lineData, 43, 5));
 		$return = true;
-		$return = $this->checkConsistancy(	$this->getPaymentValue(),
+		$return = $this->checkConsistancy(	$this->getTableRow()->getColumn('paymentValue'),
 											(int) substr($lineData, 48, 18),
 											"payment value");
 
-		$return = $this->checkConsistancy(	$this->getCurrency(),
+		$return = $this->checkConsistancy(	$this->getTableRow()->getColumn('currency'),
 											substr($lineData, 66, 3),
 											"currency");
 
@@ -591,7 +459,7 @@ class Economy_Model_BankgiroPaymentsDeposit
 											$this->getDeductionCount(),
 											(int) substr($lineData, 69, 8),
 											"payment count");
-		$this->setPaymentType(substr($lineData, 77, 1));
+		$this->getTableRow()->setColumn('paymentType', substr($lineData, 77, 1));
 		return $return;
 	}
 
@@ -621,6 +489,37 @@ class Economy_Model_BankgiroPaymentsDeposit
 			$error .= "Parsed: ".$left." Given: ".$right;
 			$this->setError($error);
 			return false;
+		}
+	}
+
+	/**
+	* Returns object parameters as an associative array.
+	* @author	Daniel Josefsson <dannejosefsson@gmail.com>
+	* @since	v0.2
+	* @return	array of strings
+	*/
+	public function toArray()
+	{
+		$array = array();
+		// Parameters from table row.
+		$rowArray = $this->getTableRow()->toArray();
+		foreach ($rowArray['_data'] as $key => $value)
+		{
+			$array[$key] = $value;
+		}
+		foreach ($this->_transactions as $transaction)
+		{
+			$array['transaction'][] = $transaction->toArray();
+		}
+		return $array;
+	}
+
+	public function save()
+	{
+		$this->getTableRow()->save();
+		foreach ($this->_transactions as $transaction)
+		{
+			$transaction->save();
 		}
 	}
 }

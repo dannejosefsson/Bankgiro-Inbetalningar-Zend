@@ -19,10 +19,15 @@ class Economy_BankgiroPaymentsController extends Zend_Controller_Action
 	public function extractFileAction()
 	{
 		$this->_bankgiro = new Economy_Model_BankgiroPaymentsFiles();
-		$bankgiroPaymentFileRow = $this->_bankgiro->fetchRow('bankgiroFileId', $status = $this->getRequest()->getParam($this->_queries['extractFile']));
+		$bankgiroPaymentFileRow = $this->_bankgiro->fetchRow('file_id',
+			($status = (int) trim($this->getRequest()->getParam($this->_queries['extractFile']))));
 		$bankgiroFile = $this->_bankgiro->addFile($bankgiroPaymentFileRow);
+
 		$bankgiroFile->parseFile();
-		$this->view->test = $bankgiroFile->getTableRow();//
+		$this->view->test = $bankgiroFile->getErrors();
+		echo "<pre>";
+			//var_dump($this->_bankgiro->toArray());//,
+		echo "</pre>";
 	}
 
 	public function indexAction(  )
